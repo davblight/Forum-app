@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Welcome to the Forum!</h1><br>
+        <div id="login-bar" v-if="signUp == false">
+            <h2>Log In</h2>
+            <input type="email" placeholder="email" v-model="emailInput">
+            <input type="password" placeholder="password" v-model="passwordInput">
+            <button>Log In</button>
+            <button v-on:click="showSignUp()">Sign Up</button>
+        </div>
+        <div id="signup-bar" v-if="signUp == true">
+            <h2>Sign Up</h2>
+            <input type="text" placeholder="Full Name" v-model="nameInput">
+            <input type="email" placeholder="email" v-model="emailInput">
+            <input type="password" placeholder="password" v-mocel="passwordInput">
+            <button v-on:click="showLogin()">Create Account</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
