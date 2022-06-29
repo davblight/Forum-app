@@ -3,20 +3,20 @@ const URL = "https://forum2022.codeschool.cloud"
 var app = new Vue({
     el: "#app",
     data: {
-        signUp: false,
+        page: "login",
         emailInput: "",
         passwordInput: "",
         nameInput: "",
     },  
     methods: {
         showSignUp: function () {
-            this.signUp = true;
+            this.page = "signup";
             this.emailInput = "";
             this.passwordInput = "";
             this.nameInput = "";
         },
         showLogin: function() {
-            this.signUp = false;
+            this.page = "login";
             this.emailInput = "";
             this.passwordInput = "";
             this.nameInput = "";
@@ -64,6 +64,7 @@ var app = new Vue({
                 console.log("successful login attempt");
                 
                 //take the user to a home page
+                this.page = "home"
             } else if (response.status = 401) {
                 console.log("unsuccessful login attempt");
                 //let the user know the attempt was unsuccessful
