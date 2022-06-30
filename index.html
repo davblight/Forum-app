@@ -10,8 +10,19 @@
 <body>
     <div id="app">
         <h1>Welcome to the Forum!</h1><br>
+        <div id="error-message" v-bind:error="error">{{ error }}</div>
         <div id="homepage" v-if="page == 'home'">
             <h2>This is the homepage.  Congrats on logging in.</h2>
+            <input type="text" placeholder="Thread Name" v-model="threadNameInput"><br>
+            <input type="text" placeholder="Thread Description" v-model="threadDescInput"><br>
+            <input type="text" placeholder="Thread Category" v-model="threadCatInput"><br>
+            <button v-on:click="postThread()">Post Thread</button>
+            <div v-for="thread in allThreads">
+                <h2>{{ thread.name }}</h2>
+                <p>{{ thread.description }} - <i>{{ thread.user.fullname }}</i></p>
+                <input type="text" placeholder="Post to Thread" v-model="postBodyInput">
+                <button v-on:click="postPost()">Post</button>
+            </div>
         </div>
         <div id="login-bar" v-if="page == 'login'">
             <h2>Log In</h2>
@@ -28,6 +39,7 @@
             <button v-on:click="showLogin()" v-on:click="postUser()">Create Account</button>
         </div>
     </div>
+    <div id="error-message"></div>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="app.js"></script>
 </body>
