@@ -13,6 +13,9 @@ var app = new Vue({
         threadCatInput: "",
         allThreads: [],
         postBodyInput: "",
+        displayPosts: false,
+        allPosts: [],
+        threadIDForPosts: "",
     },  
     methods: {
         showSignUp: function () {
@@ -27,6 +30,10 @@ var app = new Vue({
             this.passwordInput = "";
             this.nameInput = "";
         }, 
+        showPosts: function(threadID) {
+            this.getPosts(threadID);
+            this.displayPosts = !this.displayPosts
+        },
         //USER LOGIN AND AUTHENTICATION LOGIC
         //GET /session - Ask the server if we are logged in
         getSession: async function () {
@@ -118,12 +125,13 @@ var app = new Vue({
                 let data = await response.json();
                 //console.log(data);
                 this.allThreads = data;
+                console.log(data)
             }
         },
 
         //Identify thread ID: TEST ID
         getThreadID: async function () {
-            let response = await fetch(`${URL}/thread/62bde3739e9a3066e09b6fbb`, {
+            let response = await fetch(`${URL}/thread/:_id`, {
                 credentials: "include"
             });
             let data = await response.json();
@@ -143,23 +151,34 @@ var app = new Vue({
 
             let body = response.json();
             console.log(body);
+            this.getThread();
         },
 
-        //Delete thread by ID: TEST ID
-        deleteThread: async function () {
-            let response = await fetch(`${URL}/thread/62bddb5f9e9a3066e09b6f76`, {
+        //Delete thread by ID
+        deleteThread: async function (threadID) {
+            let response = await fetch(`${URL}/thread/${threadID}`, {
                 method: "DELETE",
                 credentials: "include"
             });
             let body = response.json();
             console.log(body);
+            this.getThread();
         },
 
         //POST LOGIC
 
-        //Post post: TEST ID
-        postPost: async function () {
-            let newPost = {thread_id: "62bde3739e9a3066e09b6fbb", body: this.postBodyInput}
+        getPosts: async function (threadID) {
+            let response = await fetch(`${URL}/thread/${threadID}/`, {
+                //method: "GET",
+                credentials: "include" //every fetch request must have this inside of it or else you basically lose your cookie
+            });
+            let data = await response.json();
+            this.allPosts = data.posts;
+            this.threadIDForPosts = data._id
+        },
+        //Post post:
+        postPost: async function (threadID) {
+            let newPost = {thread_id: threadID, body: this.postBodyInput}
             let response = await fetch(`${URL}/post`, {
                 method: "POST",
                 body: JSON.stringify(newPost),
@@ -168,16 +187,16 @@ var app = new Vue({
                     "Content-Type": "application/json"
                 }
             });
-            let data = response.json();
-            console.log(data);
+            let data = await response.json();
+            this.getPosts();
         },
-        //Delete post: TEST ID
-        deletePost: async function () {
-            let response = await fetch(`${URL}/thread/62bde3739e9a3066e09b6fbb/post/62bde9889e9a3066e09b6fc8`, {
+        //Delete post:
+        deletePost: async function (threadID, postID) {
+            let response = await fetch(`${URL}/thread/${threadID}/post/${postID}`, {
                 method: "DELETE",
                 credentials: "include"
             });
-            let body = response.json();
+            let body = await response.json();
             console.log(body);
         },
 

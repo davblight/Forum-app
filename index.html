@@ -9,19 +9,36 @@
 </head>
 <body>
     <div id="app">
-        <h1>Welcome to the Forum!</h1><br>
-        <div id="error-message" v-bind:error="error">{{ error }}</div>
-        <div id="homepage" v-if="page == 'home'">
-            <h2>This is the homepage.  Congrats on logging in.</h2>
-            <input type="text" placeholder="Thread Name" v-model="threadNameInput"><br>
-            <input type="text" placeholder="Thread Description" v-model="threadDescInput"><br>
-            <input type="text" placeholder="Thread Category" v-model="threadCatInput"><br>
-            <button v-on:click="postThread()">Post Thread</button>
-            <div v-for="thread in allThreads">
-                <h2>{{ thread.name }}</h2>
-                <p>{{ thread.description }} - <i>{{ thread.user.fullname }}</i></p>
-                <input type="text" placeholder="Post to Thread" v-model="postBodyInput">
-                <button v-on:click="postPost()">Post</button>
+        <div v-if="page == 'home'">
+            <div id="heading">
+                <h1>Welcome to the Forum!</h1><br>
+                <div id="error-message" v-bind:error="error">{{ error }}</div>
+                <h2>This is the homepage.  Congrats on logging in.</h2>
+            </div>
+            <div id="thread-post">
+                <h3>Post a New Thread</h3><br>
+                Name: <input type="text" v-model="threadNameInput"><br>
+                Description: <input type="text" v-model="threadDescInput"><br>
+                Category: <input type="text" v-model="threadCatInput">
+                <button v-on:click="postThread()" class="default-button">Post Thread</button>
+            </div>
+            <div v-for="thread in allThreads" class="thread">
+                <div class="thread-wrapper" v-if="displayPosts == false">
+                    <div class="text-wrapper">
+                        <h2 v-on:click="showPosts(thread._id)" class="thread-title">{{ thread.name }}</h2>
+                        <p>{{ thread.description }} - <i>{{ thread.user.fullname }}</i></p>
+                    </div>
+                    <button v-on:click="deleteThread(thread._id)" class="delete-button">Delete Thread</button>
+                </div>
+                <div v-if="displayPosts && thread._id == threadIDForPosts" class="post">
+                    <div v-for="post in allPosts">
+                        {{ post.body }} <button v-on:click="deletePost(thread._id, post._id)" class="delete-button">Delete Post</button>
+                    </div>
+                    <input type="text" placeholder="Post to Thread" v-model="postBodyInput">
+                    <button v-on:click="postPost(thread._id)" class="default-button">Post</button>   
+                </div>
+            </div>
+                
             </div>
         </div>
         <div id="login-bar" v-if="page == 'login'">

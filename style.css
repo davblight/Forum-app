@@ -1,0 +1,54 @@
+body {
+    background-color: rgb(103, 68, 119);
+    padding: 30px;
+}
+.thread {
+    background-color:rgb(193, 154, 211);
+    border-top: solid;
+    border-color:rgb(0, 0, 0);
+    padding: 20px;
+}
+.thread-wrapper {
+    display: flex;
+    justify-content: space-between;
+}
+.thread-title:hover {
+    cursor: pointer;
+    color: white;
+}
+#heading {
+    background-color:rgb(193, 154, 211);
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+.thread:hover {
+    background-color:rgb(201, 184, 208)
+}
+.delete-button {
+    background-color: rgb(134, 52, 52);
+    color: white;
+    height: 50px;
+    width: 120px;
+    margin-top: auto;
+    margin-bottom: auto;
+    border-radius: 5px;
+}
+button:hover {
+    cursor: pointer;
+}
+#thread-post {
+    display: flex;
+    justify-content: space-around;
+    color: white;
+}
+input {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.default-button{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+h3 {
+    color: black;
+}
