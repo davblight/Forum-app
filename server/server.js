@@ -32,9 +32,9 @@ app.post("/users", async (req, res) => {
 
 app.get("/thread/:id", async (req, res) => {
     //Get the thread
-    let threads;
+    let thread;
     try {
-        threads = await Thread.findById(req.params.id);
+        thread = await Thread.findById(req.params.id);
         if (!thread) {
             res.status(404).json({
                 message: "thread not found",
@@ -58,8 +58,19 @@ app.get("/thread/:id", async (req, res) => {
         )
     }
     //Get the users for all the posts
+    for (post in thread.posts) {
+        try {
+            let user = await User.findById(thread.posts[post].user_id, "-password");
+            thread.posts[post].user = user;
+        } catch (err) {
+            console.log(
+                `unable to get user ${thread.posts[post].user_id} when getting post ${thread.posts[post]._id}: ${err}`
+            )
+        }
+    }
 
     //Return the thread
+    res.status(200).json({thread})
 });
 
 app.get("/thread", async (req, res) => {
@@ -67,7 +78,7 @@ app.get("/thread", async (req, res) => {
     // Get the threads
     let threads;
     try {
-        threads = await Thread.find({}, "-posts");
+        threads = await Thread.find({});
     } catch (err) {
         res.status(500).json({
             message: "list request failed to get threads",
@@ -115,7 +126,54 @@ app.post("/thread", async (req, res) => {
     }
 })
 
-app.delete("/thread/:id", (req, res) => {});
+app.delete("/thread/:id", async (req, res) => {
+    //check auth
+    if (!req.user) {
+        res.status(401).json({ message: "unauthenticated -- please login" });
+        return;
+    }
+    //pull thread
+    let thread;
+    try {
+        thread = await Thread.findById(req.params.id);
+        if (!thread) {
+            res.status(404).json({
+                message: "thread not found",
+            });
+            return;
+        }
+    } catch (err) {
+        res.status(500).json({
+            message: "delete thread request failed to get thread",
+            error: err,
+        });
+    }
+    //check that the thread is owned by the requesting user
+    if (req.user.id != thread.user_id) {
+        res.status(403).json({ message: "You do not own this thread -- could not delete" });
+        return;
+    }
+    //delete the thread
+    try {
+        thread = await Thread.findByIdAndDelete(
+            //what is the id
+            req.body.thread_id,
+            { new: true}
+        );
+        if (!thread) {
+            res.status(404).json({
+                message: `thread not found`,
+                id: req.body.thread_id,
+            });
+            return;
+        }
+    } catch (err) {
+        res.status(500).json({ message: `failed to delete thread` })
+        return;
+    }
+    //return the deleted thread
+    res.status(200).json({ message: "successfully deleted thread" });
+});
 
 app.post("/post", async (req, res) => {
     //check auth

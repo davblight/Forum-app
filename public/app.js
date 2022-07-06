@@ -64,7 +64,7 @@ var app = new Vue({
             let loginCreds = {
                 username: this.emailInput,
                 password: this.passwordInput,
-                fullname: this.nameInput
+                // fullname: this.nameInput
             };
             let response = await fetch(`${URL}/session`, {
                 method: "POST",
