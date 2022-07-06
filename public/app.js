@@ -1,4 +1,5 @@
-const URL = "https://forum2022.codeschool.cloud"
+const URL = "http://localhost:8080"
+//"https://forum2022.codeschool.cloud"
 
 var app = new Vue({
     el: "#app",
@@ -60,7 +61,11 @@ var app = new Vue({
         },
         //POST /session - Attempt to login
         postSession: async function () {
-            let loginCreds = {username: this.emailInput, password: this.passwordInput};
+            let loginCreds = {
+                username: this.emailInput,
+                password: this.passwordInput,
+                fullname: this.nameInput
+            };
             let response = await fetch(`${URL}/session`, {
                 method: "POST",
                 body: JSON.stringify(loginCreds),
@@ -91,7 +96,7 @@ var app = new Vue({
         //POST /user - Create new user
         postUser: async function () {
             let newUser = {fullname: this.nameInput, username: this.emailInput, password: this.passwordInput};
-            let response = await fetch(`${URL}/user`, {
+            let response = await fetch(`${URL}/users`, {
                 method: "POST",
                 body: JSON.stringify(newUser),
                 headers: {

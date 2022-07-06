@@ -52,3 +52,7 @@ input {
 h3 {
     color: black;
 }
+.post {
+    display: flex;
+    justify-content: space-between;
+}

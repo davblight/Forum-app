@@ -32,19 +32,22 @@
                 </div>
                 <div v-if="displayPosts && thread._id == threadIDForPosts" class="post">
                     <div v-for="post in allPosts">
-                        {{ post.body }} <button v-on:click="deletePost(thread._id, post._id)" class="delete-button">Delete Post</button>
+                        <div class="post-content">
+                            {{ post.body }} - <i>{{ post.user.fullname }}</i><br> <br>
+                            <input type="text" placeholder="Post to Thread" v-model="postBodyInput">
+                            <button v-on:click="postPost(thread._id)" class="default-button">Post</button>   
+                        </div>
+                        <button v-on:click="deletePost(thread._id, post._id)" class="delete-button">Delete Post</button>
                     </div>
-                    <input type="text" placeholder="Post to Thread" v-model="postBodyInput">
-                    <button v-on:click="postPost(thread._id)" class="default-button">Post</button>   
                 </div>
             </div>
                 
             </div>
-        </div>
         <div id="login-bar" v-if="page == 'login'">
             <h2>Log In</h2>
             <input type="email" placeholder="email" v-model="emailInput">
             <input type="password" placeholder="password" v-model="passwordInput">
+            <input type="text" placeholder="Full Name" v-model="nameInput">
             <button v-on:click="postSession()">Log In</button>
             <button v-on:click="showSignUp()" >Sign Up</button>
         </div>
