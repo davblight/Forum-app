@@ -127,53 +127,55 @@ app.post("/thread", async (req, res) => {
 })
 
 app.delete("/thread/:id", async (req, res) => {
-    //check auth
+    // check if authed
     if (!req.user) {
-        res.status(401).json({ message: "unauthenticated -- please login" });
-        return;
+      res.status(401).json({ mesage: "unauthenticated" });
+      return;
     }
-    //pull thread
+    console.log(`request to delete a single thread with id ${req.params.id}`);
+  
     let thread;
+  
+    // get the thread to check if the current user is allow to delete it
     try {
-        thread = await Thread.findById(req.params.id);
-        if (!thread) {
-            res.status(404).json({
-                message: "thread not found",
-            });
-            return;
-        }
+      thread = await Thread.findById(req.params.id);
     } catch (err) {
-        res.status(500).json({
-            message: "delete thread request failed to get thread",
-            error: err,
-        });
+      res.status(500).json({
+        message: `failed to delete thread`,
+        error: err,
+      });
+      return;
     }
-    //check that the thread is owned by the requesting user
-    if (req.user.id != thread.user_id) {
-        res.status(403).json({ message: "You do not own this thread -- could not delete" });
-        return;
+  
+    // check if we found it
+    if (thread === null) {
+      res.status(404).json({
+        message: `thread not found`,
+        thread_id: req.params.thread_id,
+      });
+      return;
     }
-    //delete the thread
+  
+    // check if the current user made the post
+    if (thread.user_id != req.user.id) {
+      res.status(403).json({ mesage: "unauthorized" });
+      return;
+    }
+  
+    // delete the post
     try {
-        thread = await Thread.findByIdAndDelete(
-            //what is the id
-            req.body.thread_id,
-            { new: true}
-        );
-        if (!thread) {
-            res.status(404).json({
-                message: `thread not found`,
-                id: req.body.thread_id,
-            });
-            return;
-        }
+      await Thread.findByIdAndDelete(req.params.id);
     } catch (err) {
-        res.status(500).json({ message: `failed to delete thread` })
-        return;
+      res.status(500).json({
+        message: `failed to delete post`,
+        error: err,
+      });
+      return;
     }
-    //return the deleted thread
-    res.status(200).json({ message: "successfully deleted thread" });
-});
+  
+    // return
+    res.status(200).json(thread);
+  });
 
 app.post("/post", async (req, res) => {
     //check auth
@@ -181,44 +183,150 @@ app.post("/post", async (req, res) => {
         res.status(401).json({ message: "unauthenticated -- please login" });
         return;
     }
-    //find the thread and update it with the new post
-    let thread;
+    //check to see if the thread is closed
+    //first get thread by ID
+    let gotThread;
     try {
-        thread = await Thread.findByIdAndUpdate(
-            //What is the id
-            req.body.thread_id,
-            //what to update
-            {
-                $push: {
-                    posts: {
-                        user_id: req.user.id,
-                        body: req.body.body,
-                        thread_id: req.body.thread_id
-                    },
-                },
-            },
-            { new: true }
-            //options
-        );
-        if (!thread) {
+        gotThread = await Thread.findById(req.body.thread_id);
+        if (!gotThread) {
             res.status(404).json({
-                message: `thread not found`,
-                id: req.body.thread_id,
+                message: "thread not found",
             });
             return;
         }
     } catch (err) {
         res.status(500).json({
-            message: `failed to insert post`,
+            message: "getByID request failed to get thread",
             error: err,
+        });
+    }
+    //now check if it's closed
+    if (gotThread.closed == false){
+        //find the thread and update it with the new post
+        let thread;
+        try {
+            thread = await Thread.findByIdAndUpdate(
+                //What is the id
+                req.body.thread_id,
+                //what to update
+                {
+                    $push: {
+                        posts: {
+                            user_id: req.user.id,
+                            body: req.body.body,
+                            thread_id: req.body.thread_id
+                        },
+                    },
+                },
+                { new: true }
+                //options
+            );
+            if (!thread) {
+                res.status(404).json({
+                    message: `thread not found`,
+                    id: req.body.thread_id,
+                });
+                return;
+            }
+        } catch (err) {
+            res.status(500).json({
+                message: `failed to insert post`,
+                error: err,
+            });
+            return;
+        }
+
+        //return the (new) thread
+        res.status(201).json(thread.posts[thread.posts.length-1]);
+    } else {
+        res.status(403).json({ message: "this thread is closed. could not post" })
+    }
+});
+
+app.delete("/thread/:thread_id/post/:post_id", async (req, res) => {
+    //check auth
+    if (!req.user) {
+        res.status(401).json({ message: "unauthenticated -- please login" });
+        return;
+    }
+    let thread;
+    //pull thread
+    thread = await Thread.findOne({
+        _id: req.params.thread_id,
+        "posts._id": req.params.post_id,
+    });
+    //check that thread exists
+    if (!thread) {
+        res.status(404).json({
+            message: `thread not found when deleting post`,
+            thread_id: req.params.thread_id,
+            post_id:req.params.post_id,
         });
         return;
     }
-
-    //return the (new) thread
-    res.status(201).json(thread.posts[thread.posts.length-1]);
+    //check that the post on the thread is owned by the requesting user
+    for (let k in thread.posts) {
+        if (thread.posts[k]._id == req.params.post_id) {
+            if (req.user.id != thread.posts[k].user_id) {
+                res.status(403).json({ message: "You do not own this post -- could not delete" });
+                return;
+            } else {
+                //delete the post
+                await Thread.findByIdAndUpdate(req.params.thread_id, {
+                    $pull: {
+                        posts: {
+                            _id: req.params.post_id,
+                        },
+                    },
+                });
+                //return the deleted post
+                res.status(200).json({ message: "successfullly deleted post", postDeleted: `${thread.posts[k].body}` });
+                return;
+            }
+        }
+    }
 });
 
-app.delete("/thread/:thread_id/post/:post_id", (req, res) => {});
+app.patch("/thread/:thread_id", async (req, res) => {
+    //check auth
+    if (!req.user) {
+        res.status(401).json({ message: "unauthenticated -- please login" });
+        return;
+    }
+    let thread;
+    //get the thread
+    try {
+        thread = await Thread.findById(req.params.thread_id);
+      } catch (err) {
+        res.status(500).json({
+          message: `failed to close thread`,
+          error: err,
+        });
+        return;
+      }
+    
+    // check if we found it
+    if (thread === null) {
+        res.status(404).json({
+            message: `thread not found`,
+            thread_id: req.params.thread_id,
+        });
+        return;
+    }
+    
+    // check if the current user made the post
+    if (thread.user_id != req.user.id) {
+        res.status(403).json({ mesage: "unauthorized" });
+        return;
+    }
+    //set the "closed" parameter = to the request
+    const updatedBool = req.body;
+    try {
+        thread = await Thread.findByIdAndUpdate(req.params.thread_id, updatedBool);
+        res.status(200).json({ message: "thread closed successfully" })
+    } catch (err) {
+        res.status(500).json({ message: "failed to close thread", error: err })
+    }
+})
 
 module.exports = app

@@ -1,6 +1,7 @@
 const app = require('./server/server')
 const config = require('./config/config')
 const mongo = require('./persist/mongo')
+const checkTimeout = require('./server/timeout')
 
 mongo.onConnect(() => {
     app.listen(config.http_port, () => {
@@ -9,4 +10,4 @@ mongo.onConnect(() => {
 });
 
 mongo.connect()
-
+checkTimeout(10000)

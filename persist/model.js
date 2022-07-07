@@ -22,7 +22,7 @@ const postSchema = mongoose.Schema({
         ref: "Thread",
         required: true,
     },
-}, { timestampes: true }
+}, { timestamps: true }
 );
 
 const threadSchema = mongoose.Schema({
@@ -35,9 +35,10 @@ const threadSchema = mongoose.Schema({
     description: { type: String, required: true, default: "" },
     posts: {type: [postSchema], required: true, default: [] },
     category: { type: String, required: true, default: "" },
+    closed: { type: Boolean, default: false },
 },
 {
-    timestampes: true,
+    timestamps: true,
     //toJSON: { virtuals: true }
 });
 
